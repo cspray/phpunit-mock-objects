@@ -1048,7 +1048,7 @@ class PHPUnit_Framework_MockObject_Generator
 
             if (!$forCall) {
                 if ($this->hasType($parameter)) {
-                    $typeDeclaration = (string) $parameter->getType() . ' ';
+                    $typeDeclaration = $this->getType($parameter) . ' ';
                 } elseif ($parameter->isArray()) {
                     $typeDeclaration = 'array ';
                 } elseif ((defined('HHVM_VERSION') || version_compare(PHP_VERSION, '5.4.0', '>='))
@@ -1112,7 +1112,16 @@ class PHPUnit_Framework_MockObject_Generator
      */
     private function hasType(ReflectionParameter $parameter)
     {
-        return method_exists('ReflectionParameter', 'hasType') && $parameter->hasType();
+        $t = substr(explode(' ', (string) $parameter)[4], 0, 1);
+        if ($t !== '$' && $t !== '&' && $t !== '.') { // handle variables, by-ref, and variadics
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getType(ReflectionParameter $parameter) {
+        return explode(' ', (string) $parameter)[4];
     }
 
     /**
