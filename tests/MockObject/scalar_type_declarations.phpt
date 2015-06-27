@@ -1,9 +1,5 @@
 --TEST--
 PHPUnit_Framework_MockObject_Generator::generate('Foo', array(), 'MockFoo', TRUE, TRUE)
---SKIPIF--
-<?php
-if (!method_exists('ReflectionParameter', 'hasType')) print 'skip: PHP >= 7.0.0 required';
-?>
 --FILE--
 <?php
 class Foo
