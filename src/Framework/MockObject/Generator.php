@@ -939,6 +939,12 @@ class PHPUnit_Framework_MockObject_Generator
             $reference = '';
         }
 
+        if ($this->hasReturnType($method)) {
+            $returnType = $this->getReturnType($method);
+        } else {
+            $returnType = null;
+        }
+
         return $this->generateMockedMethodDefinition(
             $templateDir,
             $method->getDeclaringClass()->getName(),
@@ -949,7 +955,8 @@ class PHPUnit_Framework_MockObject_Generator
             $this->getMethodParameters($method, true),
             $reference,
             $callOriginalMethods,
-            $method->isStatic()
+            $method->isStatic(),
+            $returnType
         );
     }
 
@@ -966,7 +973,7 @@ class PHPUnit_Framework_MockObject_Generator
      * @param  bool   $static
      * @return string
      */
-    protected function generateMockedMethodDefinition($templateDir, $className, $methodName, $cloneArguments = true, $modifier = 'public', $arguments_decl = '', $arguments_call = '', $reference = '', $callOriginalMethods = false, $static = false)
+    protected function generateMockedMethodDefinition($templateDir, $className, $methodName, $cloneArguments = true, $modifier = 'public', $arguments_decl = '', $arguments_call = '', $reference = '', $callOriginalMethods = false, $static = false, $returnType = null)
     {
         if ($static) {
             $templateFile = 'mocked_static_method.tpl';
@@ -988,7 +995,8 @@ class PHPUnit_Framework_MockObject_Generator
             'method_name'     => $methodName,
             'modifier'        => $modifier,
             'reference'       => $reference,
-            'clone_arguments' => $cloneArguments ? 'TRUE' : 'FALSE'
+            'clone_arguments' => $cloneArguments ? 'TRUE' : 'FALSE',
+            'return_type'     => $returnType ? ' : ' . $returnType : ''
             )
         );
 
@@ -1120,8 +1128,33 @@ class PHPUnit_Framework_MockObject_Generator
         return false;
     }
 
+    /**
+     * @param ReflectionParameter $parameter
+     * @return string
+     */
     private function getType(ReflectionParameter $parameter) {
         return explode(' ', (string) $parameter)[4];
+    }
+
+    private function hasReturnType(ReflectionMethod $method) {
+        $v = explode("\n", (string) $method);
+        array_pop($v);
+        array_pop($v);
+        $r = trim(array_pop($v));
+        if (substr($r, 0, 8) === '- Return') {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function getReturnType(ReflectionMethod $method) {
+        $v = explode("\n", (string) $method);
+        array_pop($v);
+        array_pop($v);
+        $r = trim(array_pop($v));
+        $r = ltrim($r, "- Return [ ");
+        return rtrim($r, ' ]');
     }
 
     /**
