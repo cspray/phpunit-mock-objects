@@ -1154,7 +1154,15 @@ class PHPUnit_Framework_MockObject_Generator
         array_pop($v);
         $r = trim(array_pop($v));
         $r = ltrim($r, "- Return [ ");
-        return rtrim($r, ' ]');
+        $r = rtrim($r, ' ]');
+        
+        if ($r === 'boolean') {
+            $r = 'bool';
+        } elseif ($r === 'integer') {
+            $r = 'int';
+        }
+        
+        return $r;
     }
 
     /**
